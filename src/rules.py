@@ -15,7 +15,7 @@ from src.models import Event
 SUSPICIOUS_PATTERNS: List[Tuple[str, int, str]] = [
     (r"mimikatz|sekurlsa|DumpLsa|procdump", 50, "Credential dumping signature detected"),
     (r"vssadmin.*delete\s+shadows|ransom|locker", 45, "Shadow copy deletion / ransomware signature"),
-    (r"(winword|excel|powerpnt|outlook)\.exe\s*->\s*(cmd|powershell|cscript|wscript)\.exe", 35, "Office app spawned command interpreter"),
+    (r"(winword|excel|powerpnt|outlook)\.exe.*(->|>)\s*(cmd|powershell|cscript|wscript|mshta)\.exe", 35, "Office app spawned command interpreter"),
     (r"powershell.*(-enc|-executionpolicy\s+bypass|downloadstring|iex)", 35, "Obfuscated / policy-bypass PowerShell invocation"),
     (r"certutil.*-urlcache|bitsadmin.*\/transfer", 30, "Living-off-the-land download utility invoked"),
     (r"rundll32\.exe\s+.*\.bin|regsvr32\.exe\s+\/s", 30, "Unsigned/raw binary execution via system utility"),
