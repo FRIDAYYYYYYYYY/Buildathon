@@ -1,10 +1,9 @@
-"""
-Step 1 - Tabular source dataset for the hybrid detector (Isolation Forest + toy GNN).
+"""Tabular source dataset generator for AegisAI anomaly detection and rules evaluation.
 
-Generates data/training_data.csv. This CSV is the ONLY source of truth: the graph
-in Step 2 is derived from it, never generated separately.
+Generates data/training_data.csv with realistic enterprise activity baselines and
+injected attack scenarios (ransomware, macro malware, impossible travel).
 
-Run:  python generate_training_data.py
+Run:  python data/generate_training_data.py
 Deterministic: every random draw comes from one numpy Generator seeded with SEED.
 """
 import hashlib
@@ -38,8 +37,7 @@ assert sum(ATTACK_SPLIT.values()) == N_ANOMALIES
 
 
 # ----------------------------------------------------------------------------
-# Event model (MIRROR of anomaly.py's Event, reconstructed from the field list.
-# Swap for `from anomaly import Event` once you confirm it matches.)
+# Telemetry record schema for data generation validation
 # ----------------------------------------------------------------------------
 class Event(BaseModel):
     user: str
@@ -51,8 +49,7 @@ class Event(BaseModel):
 
 
 # ----------------------------------------------------------------------------
-# Derived features (ASSUMED definitions - reconcile with anomaly.py)
-# Kept in one function so they are trivial to swap.
+# Derived temporal and process features
 # ----------------------------------------------------------------------------
 def derive_features(chain: list[str], ts: datetime) -> dict:
     return {
@@ -193,7 +190,7 @@ def generate() -> pd.DataFrame:
         })
 
     # ---- injected anomalies ----
-    # skewed victim selection: some accounts get hit repeatedly (realistic, graph-relevant)
+    # skewed victim selection: some accounts get hit repeatedly (realistic enterprise pattern)
     victim_w = rng.dirichlet(np.full(N_USERS, 0.6))
     for attack, count in ATTACK_SPLIT.items():
         for _ in range(count):
@@ -232,7 +229,7 @@ def generate() -> pd.DataFrame:
     # hosts: assigned after the fact using the same rng stream (deterministic)
     df["host"] = [pick_host(rng, u, home_ws, fav_srv, ws) for u in df["user"]]
 
-    # sort by time, then assign a stable event_id (this is the row key Step 2 will use)
+    # sort by time, then assign a stable event_id
     df = df.sort_values("timestamp", kind="mergesort").reset_index(drop=True)
     df.insert(0, "event_id", [f"evt_{i:05d}" for i in range(len(df))])
 
