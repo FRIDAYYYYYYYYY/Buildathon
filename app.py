@@ -8,6 +8,7 @@ interactive forensic sandbox, and guardrailed remediation ledger.
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timezone
 
 import altair as alt
@@ -767,9 +768,9 @@ with tab_sandbox:
         st.markdown("---")
         st.markdown("**Triggered Rule Patterns:**")
         triggered_rules = []
-        for pattern in SUSPICIOUS_PATTERNS:
-            if pattern.pattern.search(sim_event.process_chain):
-                triggered_rules.append(f"• `{pattern.name}` (+{pattern.score} pts)")
+        for pattern_str, score, desc in SUSPICIOUS_PATTERNS:
+            if re.search(pattern_str, sim_event.process_chain, re.IGNORECASE):
+                triggered_rules.append(f"• `{desc}` (+{score} pts)")
         if sim_event.files_touched_per_min >= 300:
             triggered_rules.append("• `High file modification volume (>=300/min)` (+40 pts)")
         if sim_event.new_country:
