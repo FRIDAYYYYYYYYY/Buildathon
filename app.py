@@ -411,7 +411,11 @@ with st.sidebar:
 # ─────────────────────────────────────────────────────────────────────────────
 # Session State Initialization
 # ─────────────────────────────────────────────────────────────────────────────
-if "scorer" not in st.session_state or st.session_state.get("current_scenario") != scenario:
+if (
+    "scorer" not in st.session_state
+    or st.session_state.get("current_scenario") != scenario
+    or not hasattr(st.session_state.scorer, "burst_bonus")
+):
     st.session_state.scorer = RiskScorer(threshold=threshold_val)
     st.session_state.current_scenario = scenario
     if "audit_logs" not in st.session_state:
@@ -435,6 +439,7 @@ breached_score = 0
 
 for idx, e in enumerate(events, 1):
     bd = scorer.score_event(e)
+    burst_pts = getattr(bd, "burst_bonus", 0)
     events_data.append({
         "Step": idx,
         "Timestamp": e.timestamp.strftime("%H:%M:%S"),
@@ -445,7 +450,7 @@ for idx, e in enumerate(events, 1):
         "Geo Anomaly": "⚠️ Flagged" if e.new_country else "Clean",
         "Rule Score": bd.rule_score,
         "Anomaly Score": bd.anomaly_score,
-        "Burst Bonus": bd.burst_bonus,
+        "Burst Bonus": burst_pts,
         "Step Total": bd.combined_score,
         "Cumulative Risk": bd.cumulative_score,
         "Status": "🚨 BREACH" if bd.is_breached else "Normal",
