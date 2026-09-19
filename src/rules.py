@@ -8,11 +8,11 @@ process chains, credential dumping, and geo-anomalies).
 from __future__ import annotations
 
 import re
-from typing import List, Tuple
+
 from src.models import Event
 
 # Heuristic rule patterns and assigned risk points
-SUSPICIOUS_PATTERNS: List[Tuple[str, int, str]] = [
+SUSPICIOUS_PATTERNS: list[tuple[str, int, str]] = [
     (r"mimikatz|sekurlsa|DumpLsa|procdump", 50, "Credential dumping signature detected"),
     (r"vssadmin.*delete\s+shadows|ransom|locker", 45, "Shadow copy deletion / ransomware signature"),
     (r"(winword|excel|powerpnt|outlook)\.exe.*(->|>)\s*(cmd|powershell|cscript|wscript|mshta)\.exe", 35, "Office app spawned command interpreter"),

@@ -9,7 +9,7 @@ Deterministic: every random draw comes from one numpy Generator seeded with SEED
 """
 import hashlib
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -30,7 +30,7 @@ ATTACK_SPLIT = {                       # must sum to N_ANOMALIES
 N_USERS = 60
 N_WORKSTATIONS = 30
 N_SERVERS = 10                         # 40 hosts total
-START = datetime(2026, 8, 1)
+START = datetime(2026, 8, 1, tzinfo=timezone.utc)
 DAYS = 30
 OUT_PATH = Path(__file__).parent / "data" / "training_data.csv"
 
@@ -162,7 +162,7 @@ def any_ts(rng):
 # ----------------------------------------------------------------------------
 def generate() -> pd.DataFrame:
     rng = np.random.default_rng(SEED)
-    users, ws, srv, home_ws, fav_srv, base_files, base_cpu, act_w = build_entities(rng)
+    users, ws, _srv, home_ws, fav_srv, base_files, base_cpu, act_w = build_entities(rng)
     rows = []
 
     # ---- normal events ----
@@ -181,9 +181,16 @@ def generate() -> pd.DataFrame:
             cpu = float(rng.uniform(35, 70))
         elif r < 0.035:                                # legit travel
             new_country = True
-        rows.append(dict(user=u, files_touched_per_min=float(files), new_country=new_country,
-                         process_chain=chain, cpu_percent=round(cpu, 2), timestamp=ts,
-                         label=0, attack_type="normal"))
+        rows.append({
+            "user": u,
+            "files_touched_per_min": float(files),
+            "new_country": new_country,
+            "process_chain": chain,
+            "cpu_percent": round(cpu, 2),
+            "timestamp": ts,
+            "label": 0,
+            "attack_type": "normal",
+        })
 
     # ---- injected anomalies ----
     # skewed victim selection: some accounts get hit repeatedly (realistic, graph-relevant)
@@ -209,9 +216,16 @@ def generate() -> pd.DataFrame:
                 new_country = True
                 chain = pick_weighted(rng, NORMAL_CHAINS)
                 ts = offhours_ts(rng) if rng.random() < 0.6 else any_ts(rng)
-            rows.append(dict(user=u, files_touched_per_min=files, new_country=new_country,
-                             process_chain=chain, cpu_percent=round(min(cpu, 100.0), 2),
-                             timestamp=ts, label=1, attack_type=attack))
+            rows.append({
+                "user": u,
+                "files_touched_per_min": files,
+                "new_country": new_country,
+                "process_chain": chain,
+                "cpu_percent": round(min(cpu, 100.0), 2),
+                "timestamp": ts,
+                "label": 1,
+                "attack_type": attack,
+            })
 
     df = pd.DataFrame(rows)
 

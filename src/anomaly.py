@@ -7,7 +7,8 @@ deviations and unknown behavioral anomalies on a normalized 0-100 integer scale.
 from __future__ import annotations
 
 import math
-from typing import List, Sequence, Set
+from collections.abc import Sequence
+
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
@@ -30,13 +31,13 @@ class AnomalyDetector:
             random_state=random_state,
         )
         self.is_fitted: bool = False
-        self._known_processes: Set[str] = set()
+        self._known_processes: set[str] = set()
         self._mean_files: float = 15.0
         self._std_files: float = 10.0
         self._mean_cpu: float = 15.0
         self._std_cpu: float = 10.0
 
-    def _extract_features(self, event: Event) -> List[float]:
+    def _extract_features(self, event: Event) -> list[float]:
         """Convert an Event into numerical feature vectors.
 
         Features:
@@ -128,7 +129,7 @@ class AnomalyDetector:
             stat_boost += 15.0
 
         total = float(np.clip(base_score + stat_boost, 0.0, 100.0))
-        return int(round(total))
+        return round(total)
 
 
 # Default module-level singleton instance

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import random
 from datetime import datetime, timedelta, timezone
-from typing import Dict, List
 
 from src.models import Event
 
@@ -62,7 +61,7 @@ ATTACK_SCENARIOS = {
 }
 
 
-def generate_baseline_events(count: int = 500, seed: int = 42) -> List[Event]:
+def generate_baseline_events(count: int = 500, seed: int = 42) -> list[Event]:
     """Generate a sequence of benign baseline telemetry events for training.
 
     Args:
@@ -75,7 +74,7 @@ def generate_baseline_events(count: int = 500, seed: int = 42) -> List[Event]:
     rng = random.Random(seed)
     users = ["alice.ops", "bob.dev", "charlie.analyst", "diana.fin", "svc_backup"]
     base_time = datetime.now(timezone.utc) - timedelta(hours=count / 10)
-    events: List[Event] = []
+    events: list[Event] = []
 
     for i in range(count):
         event_time = base_time + timedelta(minutes=i * 2)
@@ -92,7 +91,7 @@ def generate_baseline_events(count: int = 500, seed: int = 42) -> List[Event]:
     return events
 
 
-def generate_attack_scenario(scenario_key: str, user: str = "attacker.compromised", seed: int = 101) -> List[Event]:
+def generate_attack_scenario(scenario_key: str, user: str = "attacker.compromised", seed: int = 101) -> list[Event]:
     """Generate scripted attack sequence for a specific threat scenario.
 
     Args:
@@ -109,7 +108,7 @@ def generate_attack_scenario(scenario_key: str, user: str = "attacker.compromise
     config = ATTACK_SCENARIOS[scenario_key]
     rng = random.Random(seed)
     base_time = datetime.now(timezone.utc)
-    events: List[Event] = []
+    events: list[Event] = []
 
     for idx, chain in enumerate(config["process_chains"]):
         f_min, f_max = config["files_touched_range"]
@@ -127,7 +126,7 @@ def generate_attack_scenario(scenario_key: str, user: str = "attacker.compromise
     return events
 
 
-def generate_all_scenarios() -> Dict[str, List[Event]]:
+def generate_all_scenarios() -> dict[str, list[Event]]:
     """Generate all predefined attack sequences mapped by scenario name.
 
     Returns:

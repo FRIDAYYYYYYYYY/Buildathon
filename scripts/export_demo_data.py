@@ -7,28 +7,28 @@ and Gemini LLM triage pipeline on representative test split sequences.
 from __future__ import annotations
 
 import json
-import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Ensure project root is in python path
 ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 import pandas as pd
-from src.models import Event, TriageResult
-from src.rules import rule_score, SUSPICIOUS_PATTERNS
+
 from src.anomaly import AnomalyDetector
+from src.config import THRESHOLD
+from src.models import Event, TriageResult
+from src.rules import SUSPICIOUS_PATTERNS
 from src.scorer import RiskScorer
 from src.triage import explain_incident
-from src.config import THRESHOLD
 
 
-def get_rule_reason(event: Event) -> Optional[str]:
+def get_rule_reason(event: Event) -> str | None:
     """Identify which specific deterministic rule pattern or heuristic fired."""
-    reasons: List[str] = []
+    reasons: list[str] = []
     chain_lower = event.process_chain.lower()
 
     # 1. Process chain signatures
@@ -57,11 +57,11 @@ def get_rule_reason(event: Event) -> Optional[str]:
     return "; ".join(reasons) if reasons else None
 
 
-def make_event(row: Dict[str, Any]) -> Event:
+def make_event(row: dict[str, Any]) -> Event:
     """Convert a CSV row dictionary to a validated Event object."""
     return Event(
         user=str(row["user"]),
-        files_touched_per_min=int(round(float(row["files_touched_per_min"]))),
+        files_touched_per_min=round(float(row["files_touched_per_min"])),
         new_country=bool(row["new_country"]),
         process_chain=str(row["process_chain"]),
         cpu_percent=float(row["cpu_percent"]),
@@ -116,7 +116,7 @@ def export_demo():
         # Fresh stateful RiskScorer per sequence
         scorer = RiskScorer(threshold=THRESHOLD)
         events_list = []
-        first_breach_event: Optional[Event] = None
+        first_breach_event: Event | None = None
         breached_score: int = 0
 
         for row in user_events_df.to_dict("records"):

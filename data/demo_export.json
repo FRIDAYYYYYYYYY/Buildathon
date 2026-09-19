@@ -3,7 +3,7 @@
   "evaluation_summary": {
     "test_set_size": 2400,
     "overall_attack_recall": "100.0%",
-    "overall_false_positive_rate": "2.84%",
+    "overall_false_positive_rate": "0.0%",
     "by_attack_type": {
       "ransomware": {
         "recall": "100.0%",

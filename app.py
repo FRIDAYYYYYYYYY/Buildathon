@@ -6,22 +6,17 @@ risk score accumulation, LLM incident triage, and simulated mitigation logging.
 
 from __future__ import annotations
 
-import streamlit as st
 import pandas as pd
-from datetime import datetime, timezone
+import streamlit as st
 
-from src.models import Event
-from src.rules import rule_score
-from src.anomaly import anomaly_score
+from src.config import MODEL_NAME, THRESHOLD, validate_gemini_config
+from src.data_generator import (
+    generate_attack_scenario,
+    generate_baseline_events,
+)
+from src.remediate import log_mitigation
 from src.scorer import RiskScorer
 from src.triage import explain_incident
-from src.remediate import log_mitigation
-from src.data_generator import (
-    generate_baseline_events,
-    generate_attack_scenario,
-    ATTACK_SCENARIOS,
-)
-from src.config import THRESHOLD, MODEL_NAME, validate_gemini_config
 
 # Page configuration
 st.set_page_config(

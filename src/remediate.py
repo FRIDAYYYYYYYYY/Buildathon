@@ -8,13 +8,14 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any
+
 from src.models import TriageResult
 
 logger = logging.getLogger(__name__)
 
 
-def log_mitigation(result: TriageResult, user: str = "unknown") -> Dict[str, Any]:
+def log_mitigation(result: TriageResult, user: str = "unknown") -> dict[str, Any]:
     """Audit-log a recommended mitigation action in SIMULATION mode only.
 
     SECURITY GUARANTEE:

@@ -57,7 +57,7 @@ flowchart TD
 │   └── data_generator.py     # Benign baseline & scripted attack scenario synthesizer
 ├── tests/
 │   ├── __init__.py
-│   └── test_aegis.py         # Full unit & integration test suite (7 passing tests)
+│   └── test_aegis.py         # Full unit & integration test suite (8 passing tests)
 ├── .env.example              # Environment variables template
 ├── .gitignore                # Protects secrets, virtual environments, and caches
 ├── pytest.ini                # Pytest configuration

@@ -8,10 +8,9 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Optional
+
 from google import genai
 from google.genai import types
-from pydantic import ValidationError
 
 from src.config import GEMINI_API_KEY, MODEL_NAME
 from src.models import Event, TriageResult
@@ -75,12 +74,12 @@ def _deterministic_fallback_triage(event: Event, score: int) -> TriageResult:
         threat_type = "Ransomware Encryption Activity"
         severity = "critical"
         summary = f"Rapid bulk file modifications ({event.files_touched_per_min}/min) and shadow copy deletion detected on user account '{event.user}'."
-        mitigation = f"netsh advfirewall set allprofiles state on && taskkill /F /IM powershell.exe"
+        mitigation = "netsh advfirewall set allprofiles state on && taskkill /F /IM powershell.exe"
     elif "winword" in chain_lower or "certutil" in chain_lower:
         threat_type = "Malicious Office Macro / Stager"
         severity = "high"
         summary = f"Suspicious parent-child process chain originating from Office suite with remote payload download on user '{event.user}'."
-        mitigation = f"taskkill /F /IM certutil.exe && taskkill /F /IM rundll32.exe"
+        mitigation = "taskkill /F /IM certutil.exe && taskkill /F /IM rundll32.exe"
     else:
         threat_type = "Anomalous Behavioral Outlier"
         severity = "high" if score >= 100 else "medium"
@@ -119,7 +118,7 @@ def explain_incident(event: Event, score: int) -> TriageResult:
         f"- Timestamp: {event.timestamp.isoformat()}\n"
     )
 
-    last_error: Optional[Exception] = None
+    last_error: Exception | None = None
 
     # Attempt live LLM triage with 1 retry on schema/json failure
     for attempt in range(2):
@@ -127,7 +126,7 @@ def explain_incident(event: Event, score: int) -> TriageResult:
             raw_json = _call_gemini_api(prompt)
             data = json.loads(raw_json)
             return TriageResult.model_validate(data)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- intentional broad catch for Gemini API fallback resilience
             last_error = e
             logger.warning("Gemini triage attempt %d failed: %s", attempt + 1, str(e))
 

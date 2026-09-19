@@ -7,17 +7,17 @@ into a stateful per-user running risk tally and checks against configured incide
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Dict, List
+
+from src.anomaly import anomaly_score
 from src.config import (
-    THRESHOLD,
-    BURST_WINDOW_SECONDS,
-    BURST_THRESHOLD_SCORE,
-    BURST_MIN_EVENTS,
     BURST_BONUS,
+    BURST_MIN_EVENTS,
+    BURST_THRESHOLD_SCORE,
+    BURST_WINDOW_SECONDS,
+    THRESHOLD,
 )
 from src.models import Event, ScoreBreakdown
 from src.rules import rule_score
-from src.anomaly import anomaly_score
 
 
 class RiskScorer:
@@ -45,8 +45,8 @@ class RiskScorer:
         self.burst_threshold_score: int = burst_threshold_score
         self.burst_min_events: int = burst_min_events
         self.burst_bonus: int = burst_bonus
-        self._user_scores: Dict[str, int] = {}
-        self._user_burst_history: Dict[str, List[datetime]] = {}
+        self._user_scores: dict[str, int] = {}
+        self._user_burst_history: dict[str, list[datetime]] = {}
 
     def get_user_score(self, user: str) -> int:
         """Get the current cumulative risk score for a given user."""
