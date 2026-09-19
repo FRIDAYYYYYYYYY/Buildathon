@@ -1,5 +1,25 @@
 {
   "threshold": 75,
+  "evaluation_summary": {
+    "test_set_size": 2400,
+    "overall_attack_recall": "100.0%",
+    "overall_false_positive_rate": "2.84%",
+    "by_attack_type": {
+      "ransomware": {
+        "recall": "100.0%",
+        "test_count": 200
+      },
+      "macro_malware": {
+        "recall": "100.0%",
+        "test_count": 170
+      },
+      "impossible_travel": {
+        "recall": "100.0%",
+        "test_count": 130
+      }
+    },
+    "benign_test_count": 1900
+  },
   "sequences": [
     {
       "scenario_name": "ransomware",
@@ -88,12 +108,12 @@
           "process_chain": "explorer.exe>excel.exe>wscript.exe>powershell.exe>bitsadmin.exe",
           "files_touched_per_min": 13,
           "cpu_percent": 46.12,
-          "rule_score": 0,
-          "rule_reason": null,
+          "rule_score": 35,
+          "rule_reason": "Office app spawned command interpreter",
           "anomaly_score": 57,
           "burst_bonus": 0,
-          "cumulative_score": 57,
-          "threshold_crossed": false
+          "cumulative_score": 92,
+          "threshold_crossed": true
         },
         {
           "timestamp": "2026-08-06T05:54:22",
@@ -101,11 +121,11 @@
           "process_chain": "explorer.exe>winword.exe>wscript.exe>certutil.exe",
           "files_touched_per_min": 34,
           "cpu_percent": 69.05,
-          "rule_score": 5,
-          "rule_reason": "Elevated CPU utilization (>= 60%)",
+          "rule_score": 40,
+          "rule_reason": "Office app spawned command interpreter; Elevated CPU utilization (>= 60%)",
           "anomaly_score": 73,
           "burst_bonus": 0,
-          "cumulative_score": 135,
+          "cumulative_score": 205,
           "threshold_crossed": true
         },
         {
@@ -114,11 +134,11 @@
           "process_chain": "explorer.exe>winword.exe>cmd.exe>powershell.exe>payload.exe",
           "files_touched_per_min": 23,
           "cpu_percent": 71.21,
-          "rule_score": 5,
-          "rule_reason": "Elevated CPU utilization (>= 60%)",
+          "rule_score": 40,
+          "rule_reason": "Office app spawned command interpreter; Elevated CPU utilization (>= 60%)",
           "anomaly_score": 69,
           "burst_bonus": 0,
-          "cumulative_score": 209,
+          "cumulative_score": 314,
           "threshold_crossed": true
         },
         {
@@ -127,11 +147,11 @@
           "process_chain": "explorer.exe>outlook.exe>winword.exe>mshta.exe>powershell.exe>rundll32.exe",
           "files_touched_per_min": 8,
           "cpu_percent": 56.22,
-          "rule_score": 0,
-          "rule_reason": null,
+          "rule_score": 35,
+          "rule_reason": "Office app spawned command interpreter",
           "anomaly_score": 63,
           "burst_bonus": 0,
-          "cumulative_score": 272,
+          "cumulative_score": 412,
           "threshold_crossed": true
         },
         {
@@ -140,19 +160,19 @@
           "process_chain": "explorer.exe>excel.exe>wscript.exe>powershell.exe>certutil.exe",
           "files_touched_per_min": 6,
           "cpu_percent": 33.12,
-          "rule_score": 0,
-          "rule_reason": null,
+          "rule_score": 35,
+          "rule_reason": "Office app spawned command interpreter",
           "anomaly_score": 49,
           "burst_bonus": 0,
-          "cumulative_score": 321,
+          "cumulative_score": 496,
           "threshold_crossed": true
         }
       ],
       "triage": {
-        "threat_type": "Malicious Office Macro / Stager",
-        "severity": "high",
-        "plain_summary": "Suspicious parent-child process chain originating from Office suite with remote payload download on user 'user_054'.",
-        "mitigation_command": "taskkill /F /IM certutil.exe && taskkill /F /IM rundll32.exe"
+        "threat_type": "Anomalous Behavioral Outlier",
+        "severity": "medium",
+        "plain_summary": "Cumulative risk score (92) breached threshold with anomalous process chain 'explorer.exe>excel.exe>wscript.exe>powershell.exe>bitsadmin.exe'.",
+        "mitigation_command": "pkill -u user_054"
       }
     },
     {
